@@ -1,57 +1,22 @@
 import { describe, expect, it } from "bun:test";
 import { processRunner, TmuxClient, type Runner } from "../src/tmux-client";
 
-function clientWith(stdout = "%9\n") {
-  const seen: string[][] = [];
+function clientWith(splitOutput = "") {
   const runner: Runner = {
-    run: async (argv) => {
-      seen.push([...argv]);
-      return stdout;
-    },
+    run: async () => splitOutput,
   };
-  return { client: new TmuxClient(runner), seen };
+  return { client: new TmuxClient(runner) };
 }
 
 describe("tmux client", () => {
-  it("splits the current pane without changing focus and starts the supplied command", async () => {
-    const { client, seen } = clientWith();
-    const paneId = await client.splitPane({
-      targetPane: "%4",
-      cwd: "/repo with spaces",
-      command: [
-        "omp",
-        "--profile",
-        "work profile",
-        "--fork",
-        "/sessions/current.jsonl",
-      ],
-    });
-    expect(paneId).toBe("%9");
-    expect(seen).toEqual([
-      [
-        "split-window",
-        "-d",
-        "-c",
-        "/repo with spaces",
-        "-t",
-        "%4",
-        "-P",
-        "-F",
-        "#{pane_id}",
-        "--",
-        "omp",
-        "--profile",
-        "work profile",
-        "--fork",
-        "/sessions/current.jsonl",
-      ],
-    ]);
-  });
-
   it("fails loudly when tmux returns no pane id", async () => {
     const { client } = clientWith("");
     await expect(
-      client.splitPane({ targetPane: "%4", cwd: "/repo", command: ["omp"] }),
+      client.splitPane({
+        targetPane: "%4",
+        cwd: "/repo",
+        command: ["omp"],
+      }),
     ).rejects.toThrow(/no pane id/);
   });
 

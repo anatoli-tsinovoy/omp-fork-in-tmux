@@ -6,9 +6,11 @@ original pane untouched. Omp exposes exactly that startup operation as
 to `SessionManager.forkFrom()`, which creates a fresh session with copied history and
 lineage.
 
-The extension therefore owns only pane orchestration. It passes the current absolute
-session path to `omp --fork` in `tmux split-window`; it does not parse, rewrite, or copy
-omp session files.
+The extension therefore owns only pane orchestration. It creates a normal pane with
+`tmux split-window`, then uses `tmux send-keys` to run a quoted `omp --fork`
+command with the current absolute session path. Omp runs as a child of the shell
+by default; `--exec` opts into replacing the shell. Tmux owns shell startup; the
+extension does not parse, rewrite, or copy omp session files.
 
 Rejected: invoking interactive `/fork` in the original process. That operation adopts
 the fork in the original pane, which violates the pane-fork contract.

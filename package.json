@@ -1,6 +1,6 @@
 {
   "name": "omp-fork-in-tmux",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "omp extension: /fork-in-tmux pane-forks the current conversation under tmux",
   "omp": {
     "extensions": ["./src/index.ts"]

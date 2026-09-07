@@ -16,13 +16,17 @@ Omp links the plugin from git into `~/.omp/plugins`; `/fork-in-tmux` is then ava
 
 ## Use
 
-Run omp inside tmux, then type `/fork-in-tmux` with no arguments. The command:
+Run omp inside tmux, then type `/fork-in-tmux`. The command:
 
 1. Refuses when `TMUX` or `TMUX_PANE` is unset, while the agent is mid-turn, or before omp has persisted the first transcript entry.
-2. Splits the current tmux pane, preserving the working directory and focus.
-3. Starts `omp [--profile …] [--config …] --fork <current-session-file>` in the new pane. Explicit profile and config overlays are forwarded; ordinary global, profile, and project config is rediscovered by omp from the same profile and working directory.
+2. Runs a normal tmux `split-window`, preserving the working directory and focus. Tmux handles startup using its existing `default-command` and `default-shell` configuration.
+3. Uses tmux `send-keys` to enter the quoted `omp [--profile …] [--config …] --fork <current-session-file>` command in the new pane. Explicit profile and config overlays are forwarded; ordinary global, profile, and project config is rediscovered by omp from the same profile and working directory.
 
 The original pane and session are never modified. Omp owns the forked transcript, lineage, prompt-cache state, and artifact copy.
+
+By default, exiting omp returns to the shell in the new pane. Use `/fork-in-tmux --exec` to replace that shell with omp instead; there is then no shell to return to, and tmux's normal pane-exit behavior applies (including `remain-on-exit`).
+
+Shell startup and environment behave as they do for a normal tmux split. The extension neither chooses login/non-login mode nor copies the running omp process's environment. Settings such as `EDITOR` and `PATH` come from the shell that tmux starts. Exports made only in the original pane after startup are not copied. Other panes and tmux's stored environment are unchanged.
 
 ### Troubleshooting
 
@@ -38,4 +42,4 @@ bun run typecheck
 bun test
 ```
 
-`omp plugin install /path/to/this/repo` links the local checkout for development. Tests exercise the registered-command seam with a fake tmux client; domain vocabulary lives in `CONTEXT.md`, and the fork-mechanism decision lives in `docs/adr/0001-use-omp-cli-fork.md`.
+`omp plugin install /path/to/this/repo` links the local checkout for development. Tests cover argument handling and command guards, and use an isolated tmux server to verify native startup, shell survival versus `--exec`, quoted command arguments, working directory, and focus without touching your tmux sessions. Domain vocabulary lives in `CONTEXT.md`, and the fork-mechanism decision lives in `docs/adr/0001-use-omp-cli-fork.md`.
